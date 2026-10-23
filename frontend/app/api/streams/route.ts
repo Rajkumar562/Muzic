@@ -13,8 +13,11 @@ const CreateStreamSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("-------------------------", req)
     const data = CreateStreamSchema.parse(await req.json());
     const isYt = YT_REGEX.test(data.url);
+
+    console.log(data, isYt)
 
     if (!isYt)
       return NextResponse.json(
@@ -24,17 +27,40 @@ export async function POST(req: NextRequest) {
 
     const extractedId = data.url.split("?v=")[1];
 
-    await prismaClient.stream.create({
+    const stream = await prismaClient.stream.create({
       data: {
         userId: data.creatorId,
         url: data.url,
         extractedId,
-        type: "YouTube"
+        type: "YouTube",
       },
+    });
+    console.log("stream------------------------------------", stream)
+    return NextResponse.json({
+      message: "Stream added",
+      id: stream.id,
     });
   } catch (e) {
     return NextResponse.json(
       { message: "Error while adding a stream" },
+      { status: 411 },
+    );
+  }
+}
+
+export async function GET(req: NextRequest) {
+  const creatorId = req.nextUrl.searchParams.get("creatorId");
+  const streams = await prismaClient.stream.findMany({
+    where: {
+      userId: creatorId ?? "",
+    },
+  });
+
+  try {
+    return NextResponse.json({ streams });
+  } catch (e) {
+    return NextResponse.json(
+      { message: "Error while fetching streams" },
       { status: 411 },
     );
   }
