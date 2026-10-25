@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prismaClient } from "@/app/lib/db";
+//@ts-ignore
+import youtubesearchapi from "youtube-search-api";
 
-const YT_REGEX = new RegExp(
-  "https?:\/\/(?:www\.)?youtube\.com\/watch\?v=[\w-]+",
-);
+const YT_REGEX = /^https?:\/\/(?:www\.)?youtube\.com\/watch\?v=[\w-]+/;
 
 const CreateStreamSchema = z.object({
   creatorId: z.string(),
@@ -13,11 +13,8 @@ const CreateStreamSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("-------------------------", req)
     const data = CreateStreamSchema.parse(await req.json());
     const isYt = YT_REGEX.test(data.url);
-
-    console.log(data, isYt)
 
     if (!isYt)
       return NextResponse.json(
@@ -27,15 +24,29 @@ export async function POST(req: NextRequest) {
 
     const extractedId = data.url.split("?v=")[1];
 
+    const videoDetails = await youtubesearchapi.GetVideoDetails(extractedId);
+    const thumbnailsArray = videoDetails.thumbnail.thumbnails;
+    thumbnailsArray.sort((a: { width: number }, b: { width: number }) =>
+      a.width < b.width ? -1 : 1,
+    );
+    const defaultImage =
+      "https://i0.wp.com/picjumbo.com/wp-content/uploads/beautiful-fall-nature-scenery-free-image.jpeg?w=600&quality=80";
+
     const stream = await prismaClient.stream.create({
       data: {
         userId: data.creatorId,
         url: data.url,
         extractedId,
         type: "YouTube",
+        title: videoDetails.title ?? "No title found",
+        smallImg:
+          (thumbnailsArray.length > 1
+            ? thumbnailsArray[thumbnailsArray.length - 2].url
+            : thumbnailsArray[thumbnailsArray.lenght - 1].url) ?? defaultImage,
+        bigImg: thumbnailsArray[thumbnailsArray.length - 1].url ?? defaultImage,
       },
     });
-    console.log("stream------------------------------------", stream)
+
     return NextResponse.json({
       message: "Stream added",
       id: stream.id,
