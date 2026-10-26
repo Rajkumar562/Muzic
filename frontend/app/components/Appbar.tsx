@@ -53,7 +53,7 @@ export function Appbar() {
               </span>
               <button
                 className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-white/10"
-                onClick={() => signOut()}
+                onClick={() => signOut({ callbackUrl: "/" })}
               >
                 Log Out
               </button>
@@ -61,7 +61,7 @@ export function Appbar() {
           ) : (
             <button
               className="rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-500/25 transition-all hover:shadow-purple-500/40"
-              onClick={() => signIn()}
+              onClick={() => signIn("google")}
             >
               Get Started
             </button>

@@ -13,17 +13,20 @@ const handler = NextAuth({
 secret:process.env.NEXTAUTH_SECRET ?? "secret",
 callbacks:{
   async signIn(params){
-    if (!params.user.email)
-      return false;
+    const email = params.user.email
+    if (!email)
+      return false; 
 
     try {
-      await prismaClient.user.create({
-      data:{
-        email:params.user.email ?? "",
-        provider:"Google"
-      }
+      await prismaClient.user.upsert({
+        where:{email},
+        create:{ email,
+        provider:"Google"},
+        update:{},
+      
     })
     } catch (e) {
+    console.error("signIn failed", e);
     return false
     }
      return true;

@@ -1,10 +1,16 @@
 import { Appbar } from "./components/Appbar";
+import { Redirect } from "./components/Redirect";
+
+async function CurrentYear() {
+  "use cache";
+  return <>{new Date().getFullYear()}</>;
+}
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-950 text-white">
       <Appbar />
-
+      <Redirect/>
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-32 pb-20">
         {/* Background Gradient Blobs */}
@@ -394,7 +400,7 @@ export default function Home() {
               <span className="text-lg font-bold text-white">Muzic</span>
             </div>
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Muzic. All rights reserved.
+              &copy; <CurrentYear /> Muzic. All rights reserved.
             </p>
             <div className="flex gap-6">
               <a
